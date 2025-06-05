@@ -48,7 +48,7 @@ $tasks = getAllTasks();
 <html lang="en">
 <head>
     <!-- ... (keep head content: meta, title, tailwind cdn) ... -->
-    <title>Todo App - DB</title>
+    <title>Todo Appsdfdsfds - DB</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
