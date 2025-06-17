@@ -1,74 +1,97 @@
-
 <?php
 // includes/functions.php
 
-// Make sure to include the database configuration
-// Note the path adjustment if index.php is in public/
+// Include the database configuration
 require_once __DIR__ . '/../config/database.php';
 
 // Function to get all tasks from the database
 function getAllTasks() {
-    $conn = connectDB();
-    $tasks = []; // Initialize empty array
+    $mysqli = connectDB();
+    $tasks = [];
 
-    // SQL query to select all tasks, ordered by creation date
     $sql = "SELECT id, title, completed FROM tasks ORDER BY created_at DESC";
-    $result = $conn->query($sql);
-
-    if ($result && $result->num_rows > 0) {
-        // Fetch all results into an associative array
-        $tasks = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt = $mysqli->prepare($sql);
+    if ($stmt) {
+        $stmt->execute();
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result && mysqli_num_rows($result) > 0) {
+            $tasks = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        }
+        mysqli_stmt_close($stmt);
     }
 
-    $conn->close(); // Close the connection
+    mysqli_close($mysqli); // Close the connection
+    return $tasks;
+
+     $mysqli = connectDB();
+    $tasks = [];
+    $sql = "SELECT id, title, completed, due_date FROM tasks WHERE user_id = ? ORDER BY created_at DESC";
+    $stmt = $mysqli->prepare($sql);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $userId);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result && mysqli_num_rows($result) > 0) {
+            $tasks = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        }
+        mysqli_stmt_close($stmt);
+    }
+    mysqli_close($mysqli);
     return $tasks;
 }
 
 // Function to add a new task
-// Takes the task title as input
-function addTask($title) {
-    $conn = connectDB();
-    $title = $conn->real_escape_string(trim($title)); // Sanitize input
+function addTask($title, $userId) {
+    $mysqli = connectDB();
+    $title = trim($title);
+    $userId = (int)$userId;
 
-    if (!empty($title)) {
-        // SQL query to insert a new task
-        $sql = "INSERT INTO tasks (title) VALUES ('$title')";
-        $conn->query($sql);
-        // Basic error checking could be added here: if ($conn->error) { ... }
+    if (!empty($title) && $userId > 0) {
+        $sql = "INSERT INTO tasks (title, user_id) VALUES (?, ?)";
+        $stmt = $mysqli->prepare($sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'si', $title, $userId);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
     }
 
-    $conn->close();
+    mysqli_close($mysqli);
 }
 
 // Function to delete a task by its ID
 function deleteTask($id) {
-    $conn = connectDB();
-    $id = (int)$id; // Cast to integer for security
+    $mysqli = connectDB();
+    $id = (int)$id;
 
     if ($id > 0) {
-        // SQL query to delete a task
-        $sql = "DELETE FROM tasks WHERE id = $id";
-        $conn->query($sql);
-        // Basic error checking could be added here
+        $sql = "DELETE FROM tasks WHERE id = ?";
+        $stmt = $mysqli->prepare($sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'i', $id);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
     }
 
-    $conn->close();
+    mysqli_close($mysqli);
 }
 
 // Function to toggle the completion status of a task by its ID
 function toggleTask($id) {
-    $conn = connectDB();
-    $id = (int)$id; // Cast to integer
+    $mysqli = connectDB();
+    $id = (int)$id;
 
     if ($id > 0) {
-        // SQL query to toggle the 'completed' status
-        // Flips the boolean value (0 becomes 1, 1 becomes 0)
-        $sql = "UPDATE tasks SET completed = NOT completed WHERE id = $id";
-        $conn->query($sql);
-        // Basic error checking could be added here
+        $sql = "UPDATE tasks SET completed = NOT completed WHERE id = ?";
+        $stmt = $mysqli->prepare($sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'i', $id);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
     }
 
-    $conn->close();
+    mysqli_close($mysqli);
 }
-
 ?>
