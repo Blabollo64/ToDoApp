@@ -43,4 +43,23 @@ $success = false;
     http_response_code(400); // Bad Request if method isn't POST or action missing
 }
 exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (isset($data['action']) && $data['action'] === 'reorder' && isset($data['orderedTaskIds'])) {
+        updateTaskOrder($userId, $data['orderedTaskIds']);
+        http_response_code(200);
+        exit;
+    }
+    // ...other actions...
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $userId) {
+    $action = $_POST['action'];
+    if ($action === 'add' && !empty($_POST['task_title'])) {
+        $dueDate = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
+        addTask($_POST['task_title'], $userId, $dueDate);
+        http_response_code(200);
+        exit;
+    }
+    // ... other actions ...
+}
 ?>
